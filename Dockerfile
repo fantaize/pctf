@@ -43,5 +43,4 @@ RUN mkdir -p /app/workdir /app/logs && chown -R solver:solver /app
 
 USER solver
 
-ENTRYPOINT ["python3"]
-CMD ["orchestrator.py"]
+ENTRYPOINT ["python3", "agent.py"]

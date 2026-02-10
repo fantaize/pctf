@@ -1,23 +1,30 @@
 services:
-  ctf-agent:
+  orchestrator:
     build: .
-    container_name: picoctf-agent
-    environment:
+    container_name: picoctf-orchestrator
+    entrypoint: ["python3", "orchestrator.py"]
+    environment: &env
       - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN}
       - PICOCTF_USERNAME=${PICOCTF_USERNAME}
       - PICOCTF_PASSWORD=${PICOCTF_PASSWORD}
       - PICOCTF_URL=${PICOCTF_URL:-https://play.picoctf.org}
       - MODEL=${MODEL:-claude-opus-4-6}
       - MAX_ATTEMPTS_PER_CHALLENGE=${MAX_ATTEMPTS_PER_CHALLENGE:-3}
-      - CATEGORIES=${CATEGORIES:-} # comma-separated filter, empty = all
-      - MAX_POINTS=${MAX_POINTS:-500} # skip challenges above this
-      - DRY_RUN=${DRY_RUN:-false} # if true, solve but don't submit
-      - WORKERS=${WORKERS:-1} # parallel solvers (direct mode)
-      - MAX_TURNS=${MAX_TURNS:-200} # orchestrator turn budget
-      - MAX_TURNS_SOLVER=${MAX_TURNS_SOLVER:-30} # solver turn budget per challenge
+      - CATEGORIES=${CATEGORIES:-}
+      - MAX_POINTS=${MAX_POINTS:-500}
+      - DRY_RUN=${DRY_RUN:-false}
+      - WORKERS=${WORKERS:-1}
+      - MAX_TURNS=${MAX_TURNS:-200}
+      - MAX_TURNS_SOLVER=${MAX_TURNS_SOLVER:-30}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
-    volumes:
+    volumes: &vols
       - ./workdir:/app/workdir
       - ./logs:/app/logs
-    # Network access needed for picoCTF challenges
+    network_mode: host
+
+  ctf-agent:
+    build: .
+    container_name: picoctf-agent
+    environment: *env
+    volumes: *vols
     network_mode: host

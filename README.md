@@ -39,8 +39,11 @@ claude setup-token
 ### 2. Build & run
 
 ```bash
-# Solve all unsolved challenges (easiest first)
-docker-compose up --build
+# Orchestrator mode — autonomous strategist that manages solver sub-agents
+docker-compose run orchestrator
+
+# Direct mode — solve all unsolved challenges (easiest first)
+docker-compose run ctf-agent
 
 # Solve only crypto challenges
 docker-compose run ctf-agent --category crypto
