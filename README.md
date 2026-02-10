@@ -1,4 +1,4 @@
-# 🤖 PicoCTF Autonomous Solver Agent
+# PicoCTF Autonomous Solver Agent + Orchestrator
 
 A fully autonomous, Dockerized agent that logs into PicoCTF, scrapes challenges, solves them using Claude Code, and submits flags — all hands-off.
 
@@ -7,7 +7,7 @@ Powered by the [Claude Agent SDK](https://github.com/anthropics/claude-agent-sdk
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────┐
 │                 Docker Container                 │
 │                                                  │
 │  agent.py (Orchestrator)                         │
@@ -19,7 +19,7 @@ Powered by the [Claude Agent SDK](https://github.com/anthropics/claude-agent-sdk
 │                                                  │
 │  Pre-installed: pwntools, z3, angr, binwalk,     │
 │  gdb, radare2, steghide, john, etc.              │
-└─────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────┘
 ```
 
 ## Quick Start
