@@ -1,0 +1,19 @@
+# Credentials
+.env
+.env.local
+.env*.local
+
+# Runtime data
+workdir/
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store
+
+# Claude Code
+.claude/

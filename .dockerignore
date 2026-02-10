@@ -1,0 +1,8 @@
+# Don't send workdir/logs to Docker daemon — they're mounted as volumes
+workdir/
+logs/
+.git/
+.env
+__pycache__/
+*.pyc
+.claude/
