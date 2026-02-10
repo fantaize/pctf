@@ -283,11 +283,29 @@ async def run_orchestrator():
         else:
             print_message(message, turn_counter)
 
-    # ── Final summary ──
+    # ── Final summary with progress ──
     console.print(f"\n[bold magenta]{'═' * 60}[/bold magenta]")
     console.print("[bold magenta]  SESSION COMPLETE  [/bold magenta]")
     console.print(f"  Total cost: ${total_cost:.4f}")
     console.print(f"[bold magenta]{'═' * 60}[/bold magenta]")
+
+    # Show solve progress from results log
+    results_file = LOGDIR / "results.jsonl"
+    if results_file.exists():
+        import json as _json
+        records = []
+        for line in results_file.read_text().strip().split("\n"):
+            if line:
+                try:
+                    records.append(_json.loads(line))
+                except _json.JSONDecodeError:
+                    pass
+        solved = [r for r in records if r.get("solved")]
+        failed = [r for r in records if not r.get("solved")]
+        total_points = sum(r.get("points", 0) for r in solved)
+        console.print(f"\n[bold]Challenges solved: {len(solved)}[/bold]")
+        console.print(f"[bold]Challenges failed: {len(failed)}[/bold]")
+        console.print(f"[bold]Points earned:     {total_points}[/bold]")
 
 
 def main():

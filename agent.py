@@ -59,6 +59,7 @@ def parse_args():
     p.add_argument("--dry-run", action="store_true", help="Solve but don't submit flags")
     p.add_argument("--max-attempts", type=int, default=3, help="Max solve attempts per challenge")
     p.add_argument("--list", action="store_true", help="Just list challenges and exit")
+    p.add_argument("--progress", action="store_true", help="Show solve progress by category and exit")
     p.add_argument("--unsolved-only", action="store_true", default=True, help="Skip already-solved")
     p.add_argument("--workers", "-w", type=int, default=1, help="Number of parallel solvers (default: 1)")
     return p.parse_args()
@@ -112,6 +113,53 @@ def display_challenges(challenges: list[Challenge]):
 
     console.print(table)
     console.print(f"\nTotal: {len(challenges)} challenges")
+
+
+def display_progress(challenges: list[Challenge]):
+    """Show a progress summary grouped by category."""
+    from collections import defaultdict
+
+    by_cat: dict[str, dict] = defaultdict(lambda: {"solved": 0, "total": 0, "points_earned": 0, "points_available": 0})
+
+    for c in challenges:
+        cat = by_cat[c.category]
+        cat["total"] += 1
+        cat["points_available"] += c.points
+        if c.solved:
+            cat["solved"] += 1
+            cat["points_earned"] += c.points
+
+    total_solved = sum(d["solved"] for d in by_cat.values())
+    total_challenges = len(challenges)
+    total_earned = sum(d["points_earned"] for d in by_cat.values())
+    total_available = sum(d["points_available"] for d in by_cat.values())
+
+    # Category breakdown table
+    table = Table(title="Progress by Category", show_lines=True)
+    table.add_column("Category", min_width=20)
+    table.add_column("Solved", width=10, justify="center")
+    table.add_column("Progress", min_width=20)
+    table.add_column("Points", width=14, justify="right")
+
+    for cat_name in sorted(by_cat):
+        d = by_cat[cat_name]
+        pct = (d["solved"] / d["total"] * 100) if d["total"] else 0
+        bar_len = 20
+        filled = int(bar_len * d["solved"] / d["total"]) if d["total"] else 0
+        bar = f"[green]{'█' * filled}[/green][dim]{'░' * (bar_len - filled)}[/dim] {pct:.0f}%"
+        table.add_row(
+            cat_name,
+            f"{d['solved']}/{d['total']}",
+            bar,
+            f"{d['points_earned']}/{d['points_available']}",
+        )
+
+    console.print(table)
+
+    # Overall summary
+    overall_pct = (total_solved / total_challenges * 100) if total_challenges else 0
+    console.print(f"\n[bold]Overall: {total_solved}/{total_challenges} challenges ({overall_pct:.1f}%)[/bold]")
+    console.print(f"[bold]Points:  {total_earned}/{total_available}[/bold]\n")
 
 
 def save_result(challenge: Challenge, flag: str | None, workdir: Path):
@@ -212,6 +260,10 @@ def main():
         max_points=max_points,
         unsolved_only=args.unsolved_only,
     )
+
+    if args.progress:
+        display_progress(all_challenges)
+        sys.exit(0)
 
     if args.list:
         display_challenges(targets)
@@ -320,7 +372,13 @@ def main():
 
             save_result(challenge, flag, challenge_dir)
 
-    # ── Summary ──
+            # Live progress update after each challenge
+            if flag:
+                challenge.solved = True
+            console.print()
+            display_progress(all_challenges)
+
+    # ── Final summary ──
     console.print(f"\n{'═' * 60}")
     console.print("[bold]FINAL RESULTS[/bold]")
     console.print(f"  Solved:  {solved_count}")
@@ -328,6 +386,7 @@ def main():
     console.print(f"  Total:   {len(targets)}")
     console.print(f"  Workers: {workers}")
     console.print(f"{'═' * 60}")
+    display_progress(all_challenges)
 
     client.close()
 
